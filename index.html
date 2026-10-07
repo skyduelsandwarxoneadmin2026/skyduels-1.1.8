@@ -497,7 +497,7 @@
       <button id="playCardBtn">🃏 Deploy</button>
       <button id="attackBtn">⚔️ Attack</button>
       <button id="useSkillBtn">✨ Use Skill</button>
-      <button id="endTurnBtn">⏭️ End Turn</button>
+      <button id="endTurnBtn">⏭️ Pass / End Turn</button>
     </div>
     <div class="hand-area" id="handArea"></div>
     <div id="targetSelector" class="target-select" style="display:none;"></div>
@@ -666,6 +666,21 @@
         <div class="store-product-list" id="promoList" style="margin-top:10px;"></div>
       </div>
       <div class="admin-card-form">
+        <h4>🎁 Gift Codes (SDC)</h4>
+        <p style="font-size:0.76rem;color:#555;margin:0 0 8px;">
+          Create a gift code that grants players a fixed amount of SDC. Each player can redeem a code once.
+        </p>
+        <label>Code</label>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+          <input type="text" id="giftCodeName" placeholder="e.g. GIFT25" style="flex:1;padding:6px;border-radius:8px;border:1px solid #ccc;">
+          <button id="genGiftCodeBtn" type="button" style="white-space:nowrap;background:#6a8a4a;color:white;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;">🎲 Random</button>
+        </div>
+        <label>SDC Amount</label>
+        <input type="number" id="giftCodeAmount" value="100" min="1" max="100000" style="padding:6px;border-radius:8px;border:1px solid #ccc;">
+        <button id="createGiftBtn" style="margin-top:8px;">➕ Create Gift Code</button>
+        <div class="store-product-list" id="giftList" style="margin-top:10px;"></div>
+      </div>
+      <div class="admin-card-form">
         <h4>🔑 Change Admin Password</h4>
         <p style="font-size:0.76rem;color:#555;margin:0 0 8px;">
           Rotate the admin password. New password is saved to Firebase so it survives reloads.
@@ -746,9 +761,8 @@ async function ensureAdminConfig() {
   }
 }
 
-// Gift code redemption
-const GIFT_CODE = "vHTJCQXf4Na7VFLuBBVCdozgpwwo745H4ews9bquWvSYoP7hUx";
-const GIFT_REWARD = 150;
+// Gift codes are now admin-created and stored in Firebase (admin/gifts/<CODE>).
+// Each code grants a fixed SDC amount and is redeemable once per player.
 
 function sanitizeKey(key) {
   if (!key) return 'unknown';
@@ -861,6 +875,10 @@ function debug(msg) {
     debugPanel.scrollTop = debugPanel.scrollHeight;
   }
 }
+// Surface any uncaught error / promise rejection on the on-screen debug panel
+// so a freeze or blank screen is debuggable without opening the browser console.
+window.addEventListener('error', (e) => debug('❌ JS error: ' + (e && (e.message || e.error))));
+window.addEventListener('unhandledrejection', (e) => debug('❌ Unhandled rejection: ' + (e && e.reason && (e.reason.message || e.reason))));
 
 function updateCurrencyDisplay() {
   const badge = document.getElementById('currencyBadge');
@@ -1021,6 +1039,7 @@ onAuthStateChanged(auth, async (user) => {
     // The card cache may have been unavailable before login (DB requires auth).
     // Reload it now that we're authenticated and refresh all card-dependent UI.
     await loadCardCache();
+    await ensureSheetMirror();
     populateCardSelects();
     renderPromoCardPicker();
     startSyncTick();
@@ -1151,9 +1170,14 @@ document.getElementById('giftCodeInput')?.addEventListener('keydown', (e) => {
 async function redeemGiftCode() {
   if (!currentUser) return alert('Please wait for authentication.');
   const input = document.getElementById('giftCodeInput');
-  const code = (input?.value || '').trim();
+  const code = (input?.value || '').trim().toUpperCase();
   if (!code) return alert('Enter a gift code.');
-  if (code !== GIFT_CODE) return alert('Invalid gift code.');
+  // Gift codes are admin-created and stored under admin/gifts/<CODE>.
+  const gSnap = await get(ref(db, `admin/gifts/${code}`));
+  if (!gSnap.exists()) return alert('❌ Invalid gift code.');
+  const gift = gSnap.val();
+  const amount = Number(gift.amount) || 0;
+  if (amount <= 0) return alert('❌ This gift code has no SDC.');
   const safeUid = sanitizeKey(currentUser.uid);
   const userRef = ref(db, `users/${safeUid}`);
   const snap = await get(userRef);
@@ -1161,15 +1185,15 @@ async function redeemGiftCode() {
   const data = snap.val();
   const redeemed = data.redeemed || {};
   if (redeemed[code]) return alert('This gift code has already been redeemed.');
-  const newCurrency = (Number(data.currency) || 0) + GIFT_REWARD;
+  const newCurrency = (Number(data.currency) || 0) + amount;
   await update(userRef, { currency: newCurrency, redeemed: { ...redeemed, [code]: true } });
   userCurrency = newCurrency;
   updateCurrencyDisplay();
   if (currentRoom) {
     await update(ref(db, `games/${currentRoom}/players/${safeUid}`), { currency: newCurrency });
   }
-  alert(`🎁 +${GIFT_REWARD} SDC redeemed!`);
-  debug(`✅ Gift code redeemed: +${GIFT_REWARD} SDC.`);
+  alert(`🎁 +${amount} SDC redeemed!`);
+  debug(`✅ Gift code redeemed: +${amount} SDC.`);
   if (input) input.value = '';
 }
 
@@ -1896,6 +1920,25 @@ async function ensureSheetCards() {
 // Backwards-compatible alias for the old default-only seeder.
 async function createDefaultCards() { return ensureSheetCards(); }
 
+// Mirrors the built-in SHEET_CARDS (the "SkyDuels Google Sheet" master list of
+// every plane/action card) into Firebase `admin/sheet` ONCE. This makes the
+// master list live in the cloud so any plane an admin creates later can be
+// appended to it as well (see createCardBtn → admin/sheet push below).
+async function ensureSheetMirror() {
+  try {
+    const snap = await get(ref(db, 'admin/sheet'));
+    if (!snap.exists() || Object.keys(snap.val() || {}).length === 0) {
+      for (const c of SHEET_CARDS) {
+        await push(ref(db, 'admin/sheet'), {
+          name: c.name, hp: c.hp, dmg: c.dmg, skill: c.skill, type: c.type,
+          rarity: rarityForCard(c.type, c.hp), effect: c.effect || ''
+        });
+      }
+      debug('📄 Google Sheet master list seeded to cloud (admin/sheet).');
+    }
+  } catch (e) { debug('⚠️ ensureSheetMirror: ' + (e && e.message)); }
+}
+
 async function loadCardCache() {
   const snap = await get(ref(db, 'admin/cards'));
   if (snap.exists()) {
@@ -2478,8 +2521,9 @@ function updateTurnUI() {
   document.getElementById('playCardBtn').disabled = !isMyTurn;
   document.getElementById('attackBtn').disabled = !isMyTurn;
   document.getElementById('useSkillBtn').disabled = !isMyTurn;
-  // Turns auto-end after an action; manual skip is no longer allowed.
-  document.getElementById('endTurnBtn').disabled = true;
+  // Turns auto-end after an action, but the player may still PASS if they have
+  // no playable card (an empty deck can otherwise freeze the game on their turn).
+  document.getElementById('endTurnBtn').disabled = !isMyTurn;
   targetSelector.style.display = 'none';
 }
 
@@ -2500,6 +2544,7 @@ async function advanceTurn(actingPid) {
   }
   if (!found) { await update(gameRef, { status: 'finished' }); return; }
   await update(gameRef, { currentTurnIndex: nextIndex });
+  debug('🔄 Turn advanced → ' + (turnOrder[nextIndex] || '?'));
   await applyDebuffTick(gameRef, turnOrder[nextIndex]);
   await checkWinCondition(gameRef);
 }
@@ -2511,10 +2556,14 @@ async function endMyTurnAfterAction() {
   await advanceTurn(sanitizeKey(currentUser.uid));
 }
 
-// Players can no longer skip/pass their turn. The End Turn button is disabled;
-// turns end automatically after any active action (see endMyTurnAfterAction).
-document.getElementById('endTurnBtn').addEventListener('click', () => {
-  // Intentionally a no-op: skipping turns is no longer allowed.
+// Players may pass their turn (End Turn). This is the safety valve that stops
+// the game from freezing when a player has no playable card — passing advances
+// the turn and lets checkWinCondition eliminate any card-less player.
+document.getElementById('endTurnBtn').addEventListener('click', async () => {
+  if (!isMyTurn || !currentRoom || !gameData || gameData.status !== 'active') return;
+  if (!confirm('Pass your turn? (only use this if you have no playable card)')) return;
+  debug('⏭️ You passed your turn.');
+  await endMyTurnAfterAction();
 });
 
 // ----- DEPLOY (auto to first empty front slot) -----
@@ -2926,9 +2975,23 @@ document.getElementById('createCardBtn').addEventListener('click', async () => {
       const cardId = cardRef.key;
       alert(`Card "${name}" created with AI artwork! ID: ${cardId}`);
       debug(`✅ Card created: ${name} (${cardId}) + AI artwork`);
-    }
-    await loadCardCache();
-    updateCardList();
+      }
+      // Also add the plane to the cloud "Google Sheet" master list (admin/sheet)
+      // so new planes are tracked there as well (matched by name: upsert).
+      try {
+      const sheetSnap = await get(ref(db, 'admin/sheet'));
+      const sheet = sheetSnap.exists() ? sheetSnap.val() : {};
+      let matchKey = null;
+      for (const [k, s] of Object.entries(sheet)) {
+        if ((s.name || '').toLowerCase() === name.toLowerCase()) { matchKey = k; break; }
+      }
+      const record = { name, hp, dmg, skill, rarity, type, img, effect: '' };
+      if (matchKey) await update(ref(db, `admin/sheet/${matchKey}`), record);
+      else await push(ref(db, 'admin/sheet'), record);
+      debug('📄 Synced plane to Google Sheet master list: ' + name);
+      } catch (e) { debug('⚠️ sheet mirror add: ' + (e && e.message)); }
+      await loadCardCache();
+      updateCardList();
   } catch (e) {
     alert('Failed to save card: ' + e.message);
   }
@@ -3241,6 +3304,49 @@ async function loadPromoList() {
 }
 loadPromoList();
 
+// ----- ADMIN: GIFT CODES (SDC) -----
+// Create a gift code that grants a fixed SDC amount; stored in admin/gifts/<CODE>.
+document.getElementById('createGiftBtn').addEventListener('click', async () => {
+  if (!isAdmin && !promptAdminPassword()) return;
+  const code = (document.getElementById('giftCodeName').value || '').trim().toUpperCase();
+  if (!/^[A-Z0-9_-]{3,30}$/.test(code)) return alert('Gift code must be 3-30 chars: A-Z 0-9 _ -');
+  const amount = Math.floor(Number(document.getElementById('giftCodeAmount').value));
+  if (!(amount > 0)) return alert('Enter a positive SDC amount.');
+  const codeRef = ref(db, `admin/gifts/${code}`);
+  if ((await get(codeRef)).exists()) return alert(`Gift code "${code}" already exists.`);
+  await set(codeRef, { amount, createdAt: Date.now() });
+  alert(`✅ Gift code "${code}" created for ${amount} SDC.`);
+  document.getElementById('giftCodeName').value = '';
+  loadGiftList();
+});
+
+// Generate a random gift code into the input field.
+document.getElementById('genGiftCodeBtn').addEventListener('click', () => {
+  const rand = Math.random().toString(36).slice(2, 10).toUpperCase();
+  document.getElementById('giftCodeName').value = 'GIFT' + rand;
+});
+
+// List existing gift codes with a delete button.
+async function loadGiftList() {
+  const list = document.getElementById('giftList');
+  if (!list) return;
+  try {
+    const snap = await get(ref(db, 'admin/gifts'));
+    if (!snap.exists()) { list.innerHTML = '<p style="font-size:0.74rem;color:#888;">No gift codes yet.</p>'; return; }
+    list.innerHTML = Object.entries(snap.val()).map(([code, g]) => {
+      return `<div class="store-product"><span class="store-item-info">🎁 <b>${escapeHtml(code)}</b> → ${Number(g.amount) || 0} SDC</span>
+        <button class="delete-gift" data-code="${escapeHtml(code)}">🗑️</button></div>`;
+    }).join('');
+    list.querySelectorAll('.delete-gift').forEach(btn => btn.addEventListener('click', async () => {
+      if (!isAdmin && !promptAdminPassword()) return;
+      if (!confirm(`Delete gift code "${btn.dataset.code}"?`)) return;
+      await remove(ref(db, `admin/gifts/${btn.dataset.code}`));
+      loadGiftList();
+    }));
+  } catch (e) { debug('⚠️ loadGiftList: ' + (e && e.message)); }
+}
+loadGiftList();
+
 // Player-side redemption of a Promo Code (grants the admin-defined item set once).
 document.getElementById('redeemPromoBtn').addEventListener('click', async () => {
   if (!currentUser) return alert('Log in first.');
@@ -3276,7 +3382,7 @@ function renderDebugState() {
     mode: (currentRoom && (window.__lastGameData?.mode)) || null,
     turnPid: (currentRoom && window.__lastGameData?.turnPid) || null,
     cardCacheCount: Object.keys(cardCache).length,
-    adminCardsLoaded: adminCards.length,
+    adminCardsLoaded: Object.keys(cardCache).length,
     globalDiscountPct,
     time: new Date().toLocaleTimeString()
   };
@@ -3525,9 +3631,9 @@ document.getElementById('marketToggle').addEventListener('click', async () => {
     const badge = document.getElementById('marketCurrencyBadge');
     if (badge) badge.textContent = `${userCurrency || 0} SDC`;
     await refreshStorePriceMap();
-    renderMarketSellList();
-    renderMarketListings();
-    renderSkyStock();
+    await renderMarketSellList();
+    await renderMarketListings();
+    await renderSkyStock();
   } else {
     marketPanel.style.display = 'none';
   }
@@ -3883,6 +3989,7 @@ document.getElementById('langToggle').addEventListener('click', () => {
 // an AI turn that got stuck for more than 30 seconds.
 let syncInterval = null;
 let lastGameSig = '';
+let syncTickCount = 0;
 
 function startSyncTick() {
   if (syncInterval) return;
@@ -3911,6 +4018,12 @@ function gameSignature(g) {
 async function runSyncTick() {
   if (!currentUser || !currentUser.uid) return;
   const safeUid = sanitizeKey(currentUser.uid);
+  syncTickCount++;
+  // Periodically refresh the card cache so admin-added cards (and new planes
+  // synced to the Google Sheet master list) appear without a full reload.
+  if (syncTickCount % 5 === 0) {
+    try { await loadCardCache(); } catch (e) { /* non-fatal */ }
+  }
   try {
     // 1) Keep the player's own currency/hand in sync (rewards, trades,
     //    other tabs/devices) so shop & marketplace prices stay accurate.
@@ -3943,6 +4056,25 @@ async function runSyncTick() {
     const snap = await get(ref(db, `games/${currentRoom}`));
     if (!snap.exists()) return;
     gameData = snap.val();
+
+    // --- Turn-state recovery (anti-freeze safety net) ---
+    // If the "AI is busy" flag is stuck on but it is NOT actually an AI's turn,
+    // the AI routine must have ended without clearing it (e.g. bailed on a
+    // guard). Reset it so the board never freezes waiting for a turn that
+    // will never come.
+    const curId = (gameData.turnOrder || [])[gameData.currentTurnIndex || 0];
+    if (aiProcessing && !(curId && String(curId).startsWith('ai_'))) {
+      aiProcessing = false;
+      debug('🔓 Recovered stuck AI flag (it is not an AI turn).');
+    }
+    // If it IS the human's turn but the UI still shows "not your turn", the
+    // listener may have missed the change — force a re-render so the buttons enable.
+    if (curId === safeUid && gameData.status === 'active' && !isMyTurn) {
+      debug('🔓 Re-enabling your turn UI.');
+      try { renderGame(); } catch (e) {}
+      try { updateTurnUI(); } catch (e) {}
+    }
+
     const sig = gameSignature(gameData);
     if (sig !== lastGameSig) {
       lastGameSig = sig;
@@ -3986,6 +4118,7 @@ async function runSyncTick() {
 (async function initUI() {
   try {
     await ensureSheetCards();
+    await ensureSheetMirror();
   } catch (e) {
     debug("⚠️ ensureSheetCards failed: " + (e && e.message));
   }
