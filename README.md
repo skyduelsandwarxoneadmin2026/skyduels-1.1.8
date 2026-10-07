@@ -2,7 +2,7 @@
 
 A self-contained, browser-based **collectible card battler** themed around real-world (and fictional) aircraft. Build a deck of planes, deploy them to your front line, and battle friends or an AI opponent in real time.
 
-The entire game lives in a single file: **`v1.0.0/index.html`** — no build step, no framework, no backend server of your own to run. All multiplayer state is synced through ** Firebase Realtime Database**.
+The entire game lives in a single file: **`v1.1.7/index.html`** — no build step, no framework, no backend server of your own to run. All multiplayer state is synced through ** Firebase Realtime Database**.
 
 ---
 
@@ -24,7 +24,7 @@ The entire game lives in a single file: **`v1.0.0/index.html`** — no build ste
 - **🏪 Marketplace** — sell your own cards to other players and browse their listings; **SkyStock** shows each card's resale value (70% of original price).
 - **🎴 Lineup editor** — save a starting Action + Backup lineup that auto-loads each match.
 - **🛠️ Admin console** (password-protected) — create cards, manage store products, view all players, run a live debug panel, and issue **Promo Codes**.
-- **🎟️ Promo Codes** — admins create a code that grants a chosen set of cards to any player who redeems it (one-time per player).
+- **🎟️ Promo Codes** — admins create a code that grants a chosen set of cards to any player who redeems it (one-time per player) OR SDC.
 - **🏷️ Per-item discounts** — admins select exactly which store items are discounted (not applied to all items).
 - **🏆 Win & Chaos rewards** — earn SDC for winning (vs AI: 10–50, vs player: 75–150); Chaos Dungeon hands out prizes up to **250 SDC**.
 - **🌏 Language toggle** — switch between **English** and **中文**.
@@ -51,10 +51,10 @@ The entire game lives in a single file: **`v1.0.0/index.html`** — no build ste
 
 1. **Internet connection is required** — the page loads Firebase from a CDN and reads/writes the live database.
 2. Open the game in a modern browser. Two options:
-   - **Simplest:** double-click `v1.0.0/index.html` (works in current Chrome/Edge/Safari/Firefox thanks to import maps).
+   - **Simplest:** double-click `v1.1.7/index.html` (works in current Chrome/Edge/Safari/Firefox thanks to import maps).
    - **Recommended:** serve it locally so module loading is most reliable:
      ```bash
-     cd SkyDuels/v1.0.0
+     cd SkyDuels/v1.1.7
      python3 -m http.server 8000
      # then open http://localhost:8000
      ```
@@ -88,7 +88,7 @@ The entire game lives in a single file: **`v1.0.0/index.html`** — no build ste
 
 ```
 SkyDuels/
-├── v1.0.0/
+├── v1.1.7/
 │   ├── index.html      # The entire game (UI + logic + Firebase wiring)
 │   └── README.md       # This file
 ├── SkyDuels_civilian_fill.csv   # Source data for civilian aircraft cards
@@ -130,6 +130,6 @@ The game is a single self-contained `index.html`. The CSV files at the project r
 ## 📝 Notes & Known Trade-offs
 
 - Card artwork is AI-generated and loaded by card id; broken images fail silently.
-- The AI is intentionally tuned to be beatable (fixed Lv.1, Common/Rare planes only, sometimes skips attacks).
+- The AI is intentionally tuned to be beatable.
 - All game state (rooms, players, cards, shop, market listings) lives in the shared Firebase project, so it is global across all players using this build.
 - **Rewards:** winning a match grants SDC — **10–50** vs an AI, **75–150** vs another player. In **Chaos Dungeon**, eliminated players receive a consolation prize (**20–250 SDC**) and the last survivor a grand prize (**100–250 SDC**). Rewards go only to human (non-AI) players and are written to `users/<uid>/currency`.
