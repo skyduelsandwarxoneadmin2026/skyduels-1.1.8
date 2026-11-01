@@ -2,7 +2,7 @@
 
 A self-contained, browser-based **collectible card battler** themed around real-world (and fictional) aircraft. Build a deck of planes, deploy them to your front line, and battle friends or an AI opponent in real time.
 
-The entire game lives in a single file: **`v1.1.7/index.html`** — no build step, no framework, no backend server of your own to run. All multiplayer state is synced through ** Firebase Realtime Database**.
+The entire game lives in a single file: **`v1.0.0/index.html`** — no build step, no framework, no backend server of your own to run. All multiplayer state is synced through ** Firebase Realtime Database**.
 
 ---
 
@@ -24,11 +24,15 @@ The entire game lives in a single file: **`v1.1.7/index.html`** — no build ste
 - **🏪 Marketplace** — sell your own cards to other players and browse their listings; **SkyStock** shows each card's resale value (70% of original price).
 - **🎴 Lineup editor** — save a starting Action + Backup lineup that auto-loads each match.
 - **🛠️ Admin console** (password-protected) — create cards, manage store products, view all players, run a live debug panel, and issue **Promo Codes**.
-- **🎟️ Promo Codes** — admins create a code that grants a chosen set of cards to any player who redeems it (one-time per player) OR SDC.
+- **🎟️ Promo Codes** — admins create a code that grants a chosen set of cards to any player who redeems it (one-time per player).
 - **🏷️ Per-item discounts** — admins select exactly which store items are discounted (not applied to all items).
 - **🏆 Win & Chaos rewards** — earn SDC for winning (vs AI: 10–50, vs player: 75–150); Chaos Dungeon hands out prizes up to **250 SDC**.
 - **🌏 Language toggle** — switch between **English** and **中文**.
-- **🎁 Gift code** redemption for bonus SDC.
+- **🎁 Gift Codes (SDC)** — admins create codes that grant a fixed SDC amount (with a 🎲 random generator and delete), and players redeem them in the lobby (one-time per account).
+- **🛍️ Merchandise Shop** — a header **Merch** tab where players spend SDC on real-world-style goods; purchases are recorded on the player's account and shown in a **Your Merchandise** area at the bottom of the panel.
+- **🔁 Per-item fortnight limit** — admins can flag merchandise as *1 per account every 14 days*; the shop blocks re-buying until the window resets and shows the next-available date.
+- **🎨 Site-wide Themes** — admins set a global theme that applies to every player's device instantly. Includes **Halloween, Christmas, Chinese New Year, Easter, April Fools**, plus the default.
+- **👁️ April Fools — Herobrine** — when the April Fools theme is active, a transparent Herobrine sprite randomly pops up on the visible screen every 10–20 seconds for 0.75 seconds.
 - **AI-generated card artwork** rendered on the battlefield.
 
 ---
@@ -43,18 +47,16 @@ The entire game lives in a single file: **`v1.1.7/index.html`** — no build ste
 | Loading | `importmap` pulling Firebase 12.x from the gstatic CDN |
 | Data | Card definitions are bundled in `SHEET_CARDS` and synced into `admin/cards` in Firebase |
 
-> The Firebase project config and the admin password are **embedded directly in `index.html`** (near the top of the `<script type="module">` block). See [Configuration & Security](#️-configuration--security) before deploying publicly.
-
 ---
 
 ## 🚀 How to Run
 
 1. **Internet connection is required** — the page loads Firebase from a CDN and reads/writes the live database.
 2. Open the game in a modern browser. Two options:
-   - **Simplest:** double-click `v1.1.7/index.html` (works in current Chrome/Edge/Safari/Firefox thanks to import maps).
+   - **Simplest:** double-click `v1.0.0/index.html` (works in current Chrome/Edge/Safari/Firefox thanks to import maps).
    - **Recommended:** serve it locally so module loading is most reliable:
      ```bash
-     cd SkyDuels/v1.1.7
+     cd SkyDuels/v1.0.0
      python3 -m http.server 8000
      # then open http://localhost:8000
      ```
@@ -69,7 +71,7 @@ The entire game lives in a single file: **`v1.1.7/index.html`** — no build ste
 
 ## 📖 How to Play
 
-1. **Get cards.** Open the **🛒 Shop** (or **🏪 Marketplace**) and spend SDC on cards/packs. New players start with 150 SDC but an empty deck — buy a few planes first.
+1. **Get cards.** Open the **🛒 Shop** (or **🏪 Marketplace**) and spend SDC on cards/packs. New players start with 150 SDC but an empty deck — buy a few planes first. You can also spend SDC in the **🛍️ Merch** tab on merch items; your owned items appear in the **Your Merchandise** area at the bottom of that panel.
 2. **Set a lineup (optional).** Open **🎴 Lineup** and pick which Action and Backup cards start each match, then **💾 Save Lineup**.
 3. **Start a match.** Pick a mode in the lobby and hit **⚔️ Play!**
 4. **On your turn:**
@@ -88,8 +90,9 @@ The entire game lives in a single file: **`v1.1.7/index.html`** — no build ste
 
 ```
 SkyDuels/
-├── v1.1.7/
+├── v1.0.0/
 │   ├── index.html      # The entire game (UI + logic + Firebase wiring)
+│   ├── herobrine.png   # Transparent Herobrine sprite (used by the April Fools theme)
 │   └── README.md       # This file
 ├── SkyDuels_civilian_fill.csv   # Source data for civilian aircraft cards
 └── SkyDuels_new_rows.csv         # Additional card data rows
@@ -109,6 +112,11 @@ The game is a single self-contained `index.html`. The CSV files at the project r
    - **👥 Players** — see everyone who has ever played, with online status.
    - **Per-item Discounts** — tick the items you want discounted, set a `%`, then **Apply to Selected** (only the checked items are discounted — never all items).
    - **🎟️ Promo Codes** — enter a code, tick the **Items to grant** from the card list, then **Create**. Players redeem a code in the lobby (one-time per account).
+   - **🎁 Gift Codes (SDC)** — enter a code (or hit 🎲 **Random**) and an SDC amount, then **Create Gift Code**; the list shows every code with its amount and a delete button. Players redeem these in the lobby (one-time per account).
+   - **🛍️ Merchandise Shop** — add real-world-style goods (name, icon, price, optional **On Sale** + sale price, optional **1 per 14d** fortnight flag) and delete them. Each item's on-sale state, sale price, and fortnight flag can be edited via the row's **💾 Save** button.
+   - **💰 Add SDC to players** — the **👥 Players** list now has a per-player amount input + **Give SDC** button, letting an admin grant SDC to any account instantly.
+   - **🎨 Theme** — pick a site-wide theme (Default, Halloween, Christmas, Chinese New Year, Easter, April Fools); the choice is written to `admin/theme` and pushed to every device in real time.
+   - **📦 Merchandise Purchases** — a viewer (🔄 Refresh) that lists which account bought which item, grouped by product, with buyer name, truncated UID, purchase timestamp, and a `🔁` marker for fortnight-limited items.
    - **🐞 Debug Panel** — live view of current user / room / mode / turn / card cache, plus quick actions (refresh, reload cards, force-win, give +100 SDC).
 
 > The Admin console is **locked during an active battle** so rules can't be changed mid-fight.
@@ -121,7 +129,6 @@ The game is a single self-contained `index.html`. The CSV files at the project r
 
 - **Firebase config** and the **admin password** are hard-coded inside `index.html`. Anyone who opens the file can read them.
   - Before any public deployment, move secrets out of the client (or at least lock down **Firebase Realtime Database security rules**) so anonymous users cannot read/write arbitrary data.
-  - Treat the admin password as public once the file is shared.
 - **Privacy:** players are authenticated with **email/password**; a UID, email, display name, currency, owned cards, and presence flag are stored. Anonymous sign-in has been removed.
 - **Reset Progress** (lobby button) permanently wipes your owned cards and resets currency to 150 SDC.
 
@@ -130,6 +137,6 @@ The game is a single self-contained `index.html`. The CSV files at the project r
 ## 📝 Notes & Known Trade-offs
 
 - Card artwork is AI-generated and loaded by card id; broken images fail silently.
-- The AI is intentionally tuned to be beatable.
+- The AI is intentionally tuned to be beatable (fixed Lv.1, Common/Rare planes only, sometimes skips attacks).
 - All game state (rooms, players, cards, shop, market listings) lives in the shared Firebase project, so it is global across all players using this build.
 - **Rewards:** winning a match grants SDC — **10–50** vs an AI, **75–150** vs another player. In **Chaos Dungeon**, eliminated players receive a consolation prize (**20–250 SDC**) and the last survivor a grand prize (**100–250 SDC**). Rewards go only to human (non-AI) players and are written to `users/<uid>/currency`.
