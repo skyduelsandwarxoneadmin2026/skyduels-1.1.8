@@ -2,7 +2,7 @@
 
 A self-contained, browser-based **collectible card battler** themed around real-world (and fictional) aircraft. Build a deck of planes, deploy them to your front line, and battle friends or an AI opponent in real time.
 
-The entire game lives in a single file: **`v1.0.0/index.html`** — no build step, no framework, no backend server of your own to run. All multiplayer state is synced through ** Firebase Realtime Database**.
+The entire game lives in a single file: **`v1.1.8/index.html`** — no build step, no framework, no backend server of your own to run. All multiplayer state is synced through ** Firebase Realtime Database**.
 
 ---
 
@@ -32,7 +32,6 @@ The entire game lives in a single file: **`v1.0.0/index.html`** — no build ste
 - **🛍️ Merchandise Shop** — a header **Merch** tab where players spend SDC on real-world-style goods; purchases are recorded on the player's account and shown in a **Your Merchandise** area at the bottom of the panel.
 - **🔁 Per-item fortnight limit** — admins can flag merchandise as *1 per account every 14 days*; the shop blocks re-buying until the window resets and shows the next-available date.
 - **🎨 Site-wide Themes** — admins set a global theme that applies to every player's device instantly. Includes **Halloween, Christmas, Chinese New Year, Easter, April Fools**, plus the default.
-- **👁️ April Fools — Herobrine** — when the April Fools theme is active, a transparent Herobrine sprite randomly pops up on the visible screen every 10–20 seconds for 0.75 seconds.
 - **AI-generated card artwork** rendered on the battlefield.
 
 ---
@@ -56,7 +55,7 @@ The entire game lives in a single file: **`v1.0.0/index.html`** — no build ste
    - **Simplest:** double-click `v1.0.0/index.html` (works in current Chrome/Edge/Safari/Firefox thanks to import maps).
    - **Recommended:** serve it locally so module loading is most reliable:
      ```bash
-     cd SkyDuels/v1.0.0
+     cd SkyDuels/v1.1.8
      python3 -m http.server 8000
      # then open http://localhost:8000
      ```
@@ -90,7 +89,7 @@ The entire game lives in a single file: **`v1.0.0/index.html`** — no build ste
 
 ```
 SkyDuels/
-├── v1.0.0/
+├── v1.1.8/
 │   ├── index.html      # The entire game (UI + logic + Firebase wiring)
 │   ├── herobrine.png   # Transparent Herobrine sprite (used by the April Fools theme)
 │   └── README.md       # This file
