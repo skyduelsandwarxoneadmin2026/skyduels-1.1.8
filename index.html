@@ -241,8 +241,19 @@
     .admin-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      align-items: stretch;
       gap: 20px;
     }
+    .admin-card-form {
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 18px;
+      padding: 16px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .admin-card-form > :last-child { margin-bottom: 0; }
     .admin-card-form label { display: block; margin: 6px 0 2px; font-weight: 500; }
     .admin-card-form input, .admin-card-form select {
       width: 100%;
@@ -434,6 +445,69 @@
       .battlefield { flex-direction: column; }
       .header h1 { font-size: 1.5rem; }
     }
+
+    /* ===== Site-wide THEMES (applied via <body data-theme="...">) ===== */
+    body[data-theme] { transition: background 0.4s ease, color 0.4s ease; }
+    body[data-theme] .glass { transition: background 0.4s ease, border-color 0.4s ease; }
+    body[data-theme] .header h1 { -webkit-text-fill-color: transparent; }
+
+    /* Halloween */
+    body[data-theme="halloween"] { background: linear-gradient(135deg, #1a0e2e 0%, #3b1d4d 100%); color: #f3e9ff; }
+    body[data-theme="halloween"] .glass { background: rgba(60,20,90,0.45); border-color: rgba(255,140,0,0.4); }
+    body[data-theme="halloween"] .header h1 { background: linear-gradient(145deg,#ff8c00,#ff2e63); -webkit-background-clip:text; background-clip:text; }
+    body[data-theme="halloween"] .shop-toggle,
+    body[data-theme="halloween"] .admin-toggle,
+    body[data-theme="halloween"] .lineup-toggle,
+    body[data-theme="halloween"] .lang-btn { background:#ff8c00 !important; color:#fff !important; }
+    body[data-theme="halloween"] .lobby-card.active { border-color:#ff8c00 !important; }
+
+    /* Christmas */
+    body[data-theme="christmas"] { background: linear-gradient(135deg, #0b3d2e 0%, #0b2545 100%); color: #eafaf0; }
+    body[data-theme="christmas"] .glass { background: rgba(11,61,46,0.45); border-color: rgba(220,50,50,0.4); }
+    body[data-theme="christmas"] .header h1 { background: linear-gradient(145deg,#d4312e,#2e9b4f); -webkit-background-clip:text; background-clip:text; }
+    body[data-theme="christmas"] .shop-toggle,
+    body[data-theme="christmas"] .admin-toggle,
+    body[data-theme="christmas"] .lineup-toggle,
+    body[data-theme="christmas"] .lang-btn { background:#d4312e !important; color:#fff !important; }
+
+    /* Chinese New Year */
+    body[data-theme="cny"] { background: linear-gradient(135deg, #5a0d0d 0%, #8a1a1a 100%); color: #fff3e0; }
+    body[data-theme="cny"] .glass { background: rgba(120,15,15,0.5); border-color: rgba(255,200,0,0.5); }
+    body[data-theme="cny"] .header h1 { background: linear-gradient(145deg,#ffd700,#ff7a00); -webkit-background-clip:text; background-clip:text; }
+    body[data-theme="cny"] .shop-toggle,
+    body[data-theme="cny"] .admin-toggle,
+    body[data-theme="cny"] .lineup-toggle,
+    body[data-theme="cny"] .lang-btn { background:#ffd700 !important; color:#7a0000 !important; }
+
+    /* Easter */
+    body[data-theme="easter"] { background: linear-gradient(135deg, #fde9f3 0%, #e7f3ff 100%); color: #3a2a4a; }
+    body[data-theme="easter"] .glass { background: rgba(255,255,255,0.6); border-color: rgba(180,120,220,0.4); }
+    body[data-theme="easter"] .header h1 { background: linear-gradient(145deg,#ff9ec4,#8ec5ff); -webkit-background-clip:text; background-clip:text; }
+    body[data-theme="easter"] .shop-toggle,
+    body[data-theme="easter"] .admin-toggle,
+    body[data-theme="easter"] .lineup-toggle,
+    body[data-theme="easter"] .lang-btn { background:#ff9ec4 !important; color:#fff !important; }
+
+    /* April Fools */
+    body[data-theme="april-fools"] { background: linear-gradient(135deg, #2a2a72 0%, #ff00c8 100%); color: #fff; }
+    body[data-theme="april-fools"] .glass { background: rgba(40,40,114,0.5); border-color: rgba(255,0,200,0.5); }
+    body[data-theme="april-fools"] .header h1 { background: linear-gradient(145deg,#00f0ff,#ff00c8); -webkit-background-clip:text; background-clip:text; }
+    body[data-theme="april-fools"] .shop-toggle,
+    body[data-theme="april-fools"] .admin-toggle,
+    body[data-theme="april-fools"] .lineup-toggle,
+    body[data-theme="april-fools"] .lang-btn { background:#ff00c8 !important; color:#fff !important; }
+    body[data-theme="april-fools"] .lobby-card { transform: rotate(-0.5deg); }
+
+    /* Herobrine popup (April Fools only) — transparent-background sprite */
+    #herobrinePopup {
+      position: fixed; z-index: 99999; pointer-events: none;
+      filter: drop-shadow(0 0 6px rgba(0,0,0,0.6)); display: none; user-select: none;
+      line-height: 0;
+    }
+    #herobrinePopup img {
+      display: block; height: clamp(70px, 16vh, 140px); width: auto;
+      image-rendering: pixelated;
+    }
   </style>
 </head>
 <body>
@@ -447,6 +521,7 @@
       <button class="shop-toggle" id="shopToggle">🛒 Shop</button>
       <button class="shop-toggle" id="marketToggle" style="background:#7a4a8a;">🏪 Marketplace</button>
       <button class="lineup-toggle" id="lineupToggle">🎴 Lineup</button>
+      <button class="shop-toggle" id="merchToggle" style="background:#b06a2a;">🛍️ Merch</button>
       <span id="currencyBadge" style="font-size:0.9rem; background:rgba(0,0,0,0.05); padding:4px 14px; border-radius:30px;">💰 0 SDC</span>
       <span id="playerStatus" style="font-size:0.9rem; background:rgba(0,0,0,0.05); padding:4px 14px; border-radius:30px;">Offline</span>
     </div>
@@ -556,6 +631,21 @@
     <div style="margin-top:14px;">
       <button id="saveLineupBtn">💾 Save Lineup</button>
       <span id="lineupStatus" style="margin-left:10px;color:#2b7a2b;font-weight:600;"></span>
+    </div>
+  </section>
+
+  <!-- Merchandise Shop: real-world-style goods bought with SDC -->
+  <section class="merch-panel glass" id="merchPanel" style="display:none;">
+    <h3>🛍️ Merchandise Shop <span id="merchCurrencyBadge" style="font-size:0.85rem;background:rgba(0,0,0,0.05);padding:2px 12px;border-radius:20px;"></span></h3>
+    <p style="font-size:0.85rem;color:#555;margin:4px 0 12px;">
+      Spend your SDC on SkyDuels gear. Buy something cool to show your support!
+    </p>
+    <div class="shop-grid" id="merchGrid">
+      <p>Loading merchandise…</p>
+    </div>
+    <div id="merchOwned" style="margin-top:18px;border-top:1px solid rgba(0,0,0,0.1);padding-top:12px;">
+      <h4>🎁 Your Merchandise</h4>
+      <div id="merchOwnedList" class="store-product-list"></div>
     </div>
   </section>
 
@@ -681,6 +771,34 @@
         <div class="store-product-list" id="giftList" style="margin-top:10px;"></div>
       </div>
       <div class="admin-card-form">
+        <h4>🛍️ Merchandise Shop</h4>
+        <p style="font-size:0.76rem;color:#555;margin:0 0 8px;">
+          Add real-world-style goods players can buy with SDC. Put items on sale with a discounted price.
+        </p>
+        <label>Item Name</label>
+        <input type="text" id="merchName" placeholder="e.g. SkyDuels T-Shirt">
+        <label>Icon / Emoji</label>
+        <input type="text" id="merchIcon" placeholder="🧢" value="🛍️">
+        <label>Description</label>
+        <input type="text" id="merchDesc" placeholder="Short description">
+        <label>Price (SDC)</label>
+        <input type="number" id="merchPrice" value="200" min="1">
+        <label>On Sale? <input type="checkbox" id="merchOnSale" style="vertical-align:middle;"></label>
+        <label>Sale Price (SDC, if on sale)</label>
+        <input type="number" id="merchSalePrice" value="150" min="1">
+        <label>Limit to 1 per account every fortnight <input type="checkbox" id="merchFortnight" style="vertical-align:middle;"></label>
+        <button id="createMerchBtn" style="margin-top:8px;">➕ Add Merchandise</button>
+        <div class="store-product-list" id="merchList" style="margin-top:10px;"></div>
+      </div>
+      <div class="admin-card-form">
+        <h4>📦 Merchandise Purchases</h4>
+        <p style="font-size:0.76rem;color:#555;margin:0 0 8px;">
+          See which account bought which item. Grouped by merchandise item.
+        </p>
+        <button id="refreshMerchPurchasesBtn" style="margin-bottom:8px;">🔄 Refresh</button>
+        <div class="store-product-list" id="merchPurchasesList" style="max-height:320px;overflow:auto;"></div>
+      </div>
+      <div class="admin-card-form">
         <h4>🔑 Change Admin Password</h4>
         <p style="font-size:0.76rem;color:#555;margin:0 0 8px;">
           Rotate the admin password. New password is saved to Firebase so it survives reloads.
@@ -693,6 +811,21 @@
         <input type="password" id="adminNewPass2" placeholder="Repeat new password">
         <button id="changeAdminPassBtn">💾 Save New Password</button>
         <p id="adminPassMsg" style="font-size:0.74rem;color:#2b7a2b;margin-top:6px;"></p>
+      </div>
+      <div class="admin-card-form">
+        <h4>🎨 Theme</h4>
+        <p style="font-size:0.76rem;color:#555;margin:0 0 8px;">
+          Set the site-wide theme. Changes apply to every player's device instantly.
+        </p>
+        <div id="themeButtons" style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button class="theme-btn" data-theme="default">🌤️ Default</button>
+          <button class="theme-btn" data-theme="halloween">🎃 Halloween</button>
+          <button class="theme-btn" data-theme="christmas">🎄 Christmas</button>
+          <button class="theme-btn" data-theme="cny">🧧 Chinese New Year</button>
+          <button class="theme-btn" data-theme="easter">🐰 Easter</button>
+          <button class="theme-btn" data-theme="april-fools">🃏 April Fools</button>
+        </div>
+        <p id="themeMsg" style="font-size:0.74rem;color:#2b7a2b;margin-top:8px;"></p>
       </div>
       <div class="admin-card-form">
         <h4>🐞 Debug Panel</h4>
@@ -853,6 +986,7 @@ const gameSection = document.getElementById('gameSection');
 const adminPanel = document.getElementById('adminPanel');
 const shopPanel = document.getElementById('shopPanel');
 const lineupPanel = document.getElementById('lineupPanel');
+const merchPanel = document.getElementById('merchPanel');
 const playerStatus = document.getElementById('playerStatus');
 const statusBadge = document.getElementById('statusBadge');
 const roomCodeDisplay = document.getElementById('roomCodeDisplay');
@@ -1158,6 +1292,20 @@ document.getElementById('lineupToggle').addEventListener('click', () => {
     renderLineupEditor();
   } else {
     lineupPanel.style.display = 'none';
+  }
+});
+
+// ============================================================
+// MERCHANDISE TOGGLE
+// ============================================================
+document.getElementById('merchToggle').addEventListener('click', () => {
+  merchPanel.classList.toggle('active');
+  if (merchPanel.classList.contains('active')) {
+    merchPanel.style.display = 'block';
+    updateCurrencyDisplay();
+    loadMerchShop();
+  } else {
+    merchPanel.style.display = 'none';
   }
 });
 
@@ -3347,6 +3495,244 @@ async function loadGiftList() {
 }
 loadGiftList();
 
+// ============================================================
+// MERCHANDISE (admin creates, players buy with SDC)
+// Stored under admin/merch/<KEY> = { name, icon, desc, price, salePrice, onSale }
+// ============================================================
+document.getElementById('createMerchBtn').addEventListener('click', async () => {
+  if (!isAdmin && !promptAdminPassword()) return;
+  const name = (document.getElementById('merchName').value || '').trim();
+  if (!name) return alert('Enter an item name.');
+  const price = Math.floor(Number(document.getElementById('merchPrice').value));
+  if (!(price > 0)) return alert('Enter a positive price.');
+  const onSale = document.getElementById('merchOnSale').checked;
+  let salePrice = Math.floor(Number(document.getElementById('merchSalePrice').value));
+  if (onSale && !(salePrice > 0)) return alert('Enter a sale price greater than 0.');
+  if (onSale && salePrice >= price) return alert('Sale price must be lower than the regular price.');
+  const fortnight = document.getElementById('merchFortnight').checked;
+  const item = {
+    name,
+    icon: (document.getElementById('merchIcon').value || '🛍️').trim() || '🛍️',
+    desc: (document.getElementById('merchDesc').value || '').trim(),
+    price,
+    onSale,
+    salePrice: onSale ? salePrice : 0,
+    fortnight,
+    createdAt: Date.now()
+  };
+  await push(ref(db, 'admin/merch'), item);
+  alert(`✅ Added merchandise "${name}".`);
+  document.getElementById('merchName').value = '';
+  document.getElementById('merchDesc').value = '';
+  loadMerchAdmin();
+});
+
+async function loadMerchAdmin() {
+  const list = document.getElementById('merchList');
+  if (!list) return;
+  try {
+    const snap = await get(ref(db, 'admin/merch'));
+    if (!snap.exists()) { list.innerHTML = '<p style="font-size:0.74rem;color:#888;">No merchandise yet.</p>'; return; }
+    list.innerHTML = Object.entries(snap.val()).map(([key, m]) => {
+      const priceTag = m.onSale
+        ? `💰${Number(m.salePrice) || 0} <s style="color:#999;text-decoration:line-through;">💰${Number(m.price) || 0}</s> (SALE)`
+        : `💰${Number(m.price) || 0}`;
+      return `<div class="store-product">
+        <div style="flex:1;">
+          <span class="store-item-info">${(m.icon || '🛍️')} <b>${escapeHtml(m.name || key)}</b> — ${priceTag}${m.desc ? ' · ' + escapeHtml(m.desc) : ''}</span>
+          <div style="margin-top:4px;font-size:0.74rem;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            <label style="margin:0;"><input type="checkbox" class="merch-onsale" data-key="${key}" ${m.onSale ? 'checked' : ''}> On Sale</label>
+            <label style="margin:0;">Sale 💰<input type="number" class="merch-saleprice" data-key="${key}" value="${Number(m.salePrice) || 0}" min="1" style="width:72px;padding:2px;border-radius:6px;border:1px solid #ccc;"></label>
+            <label style="margin:0;"><input type="checkbox" class="merch-fortnight" data-key="${key}" ${m.fortnight ? 'checked' : ''}> 1/14d</label>
+            <button class="save-merch" data-key="${key}">💾 Save</button>
+          </div>
+        </div>
+        <button class="delete-merch" data-key="${key}">🗑️</button>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.delete-merch').forEach(btn => btn.addEventListener('click', async () => {
+      if (!isAdmin && !promptAdminPassword()) return;
+      if (!confirm('Delete this merchandise item?')) return;
+      await remove(ref(db, `admin/merch/${btn.dataset.key}`));
+      loadMerchAdmin();
+    }));
+    list.querySelectorAll('.save-merch').forEach(btn => btn.addEventListener('click', async () => {
+      if (!isAdmin && !promptAdminPassword()) return;
+      const key = btn.dataset.key;
+      const row = btn.closest('.store-product');
+      const onSale = row.querySelector('.merch-onsale').checked;
+      const fortnight = row.querySelector('.merch-fortnight').checked;
+      const salePrice = Math.floor(Number(row.querySelector('.merch-saleprice').value));
+      if (onSale) {
+        if (!(salePrice > 0)) return alert('Enter a sale price greater than 0.');
+        const mSnap = await get(ref(db, `admin/merch/${key}`));
+        if (!mSnap.exists()) return;
+        if (salePrice >= Number(mSnap.val().price)) return alert('Sale price must be lower than the regular price.');
+      }
+      await update(ref(db, `admin/merch/${key}`), { onSale, fortnight, salePrice: onSale ? salePrice : 0 });
+      loadMerchAdmin();
+    }));
+  } catch (e) { debug('⚠️ loadMerchAdmin: ' + (e && e.message)); }
+}
+loadMerchAdmin();
+
+// 14-day window for the "1 per account per fortnight" merchandise limit.
+const FORTNIGHT_MS = 14 * 24 * 60 * 60 * 1000;
+
+// Player-facing merchandise shop.
+async function loadMerchShop() {
+  const grid = document.getElementById('merchGrid');
+  if (!grid) return;
+  grid.innerHTML = '<p>Loading merchandise…</p>';
+  try {
+    const snap = await get(ref(db, 'admin/merch'));
+    const badge = document.getElementById('merchCurrencyBadge');
+    if (badge) badge.textContent = `${userCurrency || 0} SDC`;
+    // Current user's owned merch (used for fortnight gating + "Your Merchandise").
+    let owned = [];
+    if (currentUser) {
+      const uSnap = await get(ref(db, `users/${sanitizeKey(currentUser.uid)}`));
+      if (uSnap.exists() && Array.isArray(uSnap.val().merch)) owned = uSnap.val().merch;
+    }
+    renderMerchOwned(owned, snap.exists() ? snap.val() : {});
+    if (!snap.exists()) { grid.innerHTML = '<p>No merchandise available right now.</p>'; return; }
+    const items = snap.val();
+    const currency = userCurrency || 0;
+    grid.innerHTML = '';
+    for (const [key, m] of Object.entries(items)) {
+      const finalPrice = (m.onSale && Number(m.salePrice) > 0 && Number(m.salePrice) < Number(m.price))
+        ? Number(m.salePrice) : Number(m.price) || 0;
+      const struck = (m.onSale && Number(m.salePrice) > 0 && Number(m.salePrice) < Number(m.price))
+        ? ` <s style="color:#999;text-decoration:line-through;">💰${Number(m.price) || 0}</s>` : '';
+      // Fortnight limit: only one purchase per account every 14 days.
+      let disabled = currency < finalPrice;
+      let label = disabled ? 'Not enough' : 'Buy';
+      let note = m.fortnight ? ' 🔁 1 per 14d' : '';
+      if (m.fortnight) {
+        const recent = owned.find(p => p.key === key && Date.now() - (p.boughtAt || 0) < FORTNIGHT_MS);
+        if (recent) {
+          disabled = true;
+          const next = new Date((recent.boughtAt || 0) + FORTNIGHT_MS);
+          label = 'Every 14d';
+          note = ` 🔁 next ${next.toLocaleDateString()}`;
+        }
+      }
+      const div = document.createElement('div');
+      div.className = 'shop-item';
+      div.innerHTML = `
+        <div style="font-size:2rem;">${escapeHtml(m.icon || '🛍️')}</div>
+        <strong>${escapeHtml(m.name || 'Item')}</strong>
+        ${m.desc ? `<span style="font-size:0.78rem;color:#555;">${escapeHtml(m.desc)}</span>` : ''}
+        <span>💰${finalPrice}${struck}${m.onSale ? ' 🏷️SALE' : ''}${note}</span>
+        <button class="buy-merch-item" data-key="${key}" ${disabled ? 'disabled' : ''}>${label}</button>
+      `;
+      grid.appendChild(div);
+    }
+    document.querySelectorAll('.buy-merch-item').forEach(btn => {
+      btn.addEventListener('click', async () => { await purchaseMerch(btn.dataset.key); });
+    });
+  } catch (e) {
+    grid.innerHTML = `<p style="color:#b03a3a;">Could not load merchandise: ${escapeHtml(e && e.message)}</p>`;
+    debug('⚠️ loadMerchShop: ' + (e && e.message));
+  }
+}
+
+// Render the current player's purchased merchandise at the bottom of the panel.
+function renderMerchOwned(owned, merchMap) {
+  const wrap = document.getElementById('merchOwnedList');
+  if (!wrap) return;
+  if (!owned || owned.length === 0) {
+    wrap.innerHTML = '<span style="font-size:0.76rem;color:#888;">You haven\'t bought any merchandise yet.</span>';
+    return;
+  }
+  wrap.innerHTML = owned.slice().reverse().map(p => {
+    const item = merchMap[p.key] || {};
+    const icon = item.icon || '🛍️';
+    const name = p.name || item.name || p.key;
+    const d = p.boughtAt ? new Date(p.boughtAt).toLocaleDateString() : '—';
+    const extra = item.fortnight
+      ? ` · 🔁 next ${new Date((p.boughtAt || 0) + FORTNIGHT_MS).toLocaleDateString()}`
+      : '';
+    return `<div class="store-product"><span class="store-item-info">${icon} <b>${escapeHtml(name)}</b> — bought ${d}${extra}</span></div>`;
+  }).join('');
+}
+
+async function purchaseMerch(key) {
+  if (!currentUser) return alert('You must be logged in.');
+  const snap = await get(ref(db, `admin/merch/${key}`));
+  if (!snap.exists()) return alert('Item no longer available.');
+  const m = snap.val();
+  const price = (m.onSale && Number(m.salePrice) > 0 && Number(m.salePrice) < Number(m.price))
+    ? Number(m.salePrice) : Number(m.price) || 0;
+  const safeUid = sanitizeKey(currentUser.uid);
+  const userRef = ref(db, `users/${safeUid}`);
+  const userSnap = await get(userRef);
+  if (!userSnap.exists()) return alert('User data not found.');
+  const data = userSnap.val();
+  const bal = Number(data.currency) || 0;
+  if (bal < price) return alert('Not enough SDC.');
+  // Fortnight limit: only one purchase per account every 14 days.
+  if (m.fortnight) {
+    const owned = Array.isArray(data.merch) ? data.merch : [];
+    const recent = owned.find(p => p.key === key && Date.now() - (p.boughtAt || 0) < FORTNIGHT_MS);
+    if (recent) {
+      const next = new Date((recent.boughtAt || 0) + FORTNIGHT_MS);
+      return alert(`🔁 You can only buy "${m.name}" once every 14 days. Next available: ${next.toLocaleDateString()}.`);
+    }
+  }
+  // Record the purchase on the user's node (owned merch list) for record-keeping.
+  const owned = Array.isArray(data.merch) ? data.merch : [];
+  await update(userRef, { currency: bal - price, merch: [...owned, { key, name: m.name, boughtAt: Date.now() }] });
+  if (currentUser && safeUid === sanitizeKey(currentUser.uid)) {
+    userCurrency = bal - price;
+    updateCurrencyDisplay();
+  }
+  alert(`🛍️ Bought "${m.name}" for 💰${price} SDC!`);
+  debug(`🛍️ Merch purchased: ${m.name} (-${price} SDC).`);
+  loadMerchShop();
+}
+
+// Admin view: which account bought which merchandise item.
+async function loadMerchPurchases() {
+  const list = document.getElementById('merchPurchasesList');
+  if (!list) return;
+  if (!isAdmin) { list.innerHTML = '<span style="color:#888;">Admin access required.</span>'; return; }
+  try {
+    const [usersSnap, merchSnap] = await Promise.all([
+      get(ref(db, 'users')),
+      get(ref(db, 'admin/merch'))
+    ]);
+    const merchMap = merchSnap.exists() ? merchSnap.val() : {};
+    if (!usersSnap.exists()) { list.innerHTML = '<p style="font-size:0.74rem;color:#888;">No purchases yet.</p>'; return; }
+    const byItem = {}; // itemKey -> [{ name, uid, boughtAt }]
+    let total = 0;
+    for (const [uid, u] of Object.entries(usersSnap.val())) {
+      const arr = Array.isArray(u.merch) ? u.merch : [];
+      for (const p of arr) {
+        total++;
+        const k = p.key || '?';
+        (byItem[k] = byItem[k] || []).push({ name: u.name || ('Player ' + uid.slice(0, 6)), uid, boughtAt: p.boughtAt });
+      }
+    }
+    if (total === 0) { list.innerHTML = '<p style="font-size:0.74rem;color:#888;">No merchandise purchased yet.</p>'; return; }
+    list.innerHTML = Object.entries(byItem).map(([k, buyers]) => {
+      const item = merchMap[k] || {};
+      const icon = item.icon || '🛍️';
+      const itemName = item.name || k;
+      const rows = buyers.map(b => {
+        const d = b.boughtAt ? new Date(b.boughtAt).toLocaleString() : '—';
+        const limited = item.fortnight ? ' 🔁' : '';
+        return `${escapeHtml(b.name)} <span style="font-size:0.7rem;color:#888;">(${escapeHtml(b.uid.slice(0, 8))}…, ${d}${limited})</span>`;
+      }).join('<br>');
+      return `<div class="store-product"><span class="store-item-info">${icon} <b>${escapeHtml(itemName)}</b> — ${buyers.length} buyer(s):<br>${rows}</span></div>`;
+    }).join('');
+  } catch (e) { debug('⚠️ loadMerchPurchases: ' + (e && e.message)); }
+}
+document.getElementById('refreshMerchPurchasesBtn')?.addEventListener('click', () => {
+  if (!isAdmin && !promptAdminPassword()) return;
+  loadMerchPurchases();
+});
+
 // Player-side redemption of a Promo Code (grants the admin-defined item set once).
 document.getElementById('redeemPromoBtn').addEventListener('click', async () => {
   if (!currentUser) return alert('Log in first.');
@@ -3839,8 +4225,20 @@ async function renderAdminPlayerList() {
     item.className = 'card-list-item';
     item.innerHTML = `<span>${online ? '🟢' : '⚪'} <strong>${escapeHtml(u.name || 'Player ' + uid.slice(0, 6))}</strong>
         <span style="font-size:0.7rem;color:#888;">${escapeHtml(uid.slice(0, 10))}…</span></span>
-      <span style="font-size:0.78rem;">💰${Number(u.currency) || 0} · 🎴${cards} · ${online ? '<b style="color:#2b7a2b;">online</b>' : 'last seen ' + escapeHtml(lastSeen)}</span>`;
+      <span style="font-size:0.78rem;">💰${Number(u.currency) || 0} · 🎴${cards} · ${online ? '<b style="color:#2b7a2b;">online</b>' : 'last seen ' + escapeHtml(lastSeen)}</span>
+      <span style="display:flex;gap:4px;align-items:center;margin-top:6px;">
+        <input type="number" class="sdc-amount" value="100" min="1" style="width:72px;padding:3px;border-radius:6px;border:1px solid #ccc;">
+        <button class="give-sdc" data-uid="${uid}">💰 Give SDC</button>
+      </span>`;
     list.appendChild(item);
+    item.querySelector('.give-sdc').addEventListener('click', async () => {
+      if (!isAdmin && !promptAdminPassword()) return;
+      const amt = Math.floor(Number(item.querySelector('.sdc-amount').value));
+      if (!(amt > 0)) return alert('Enter a positive amount.');
+      if (!confirm(`Give 💰${amt} SDC to ${u.name || uid.slice(0, 6)}?`)) return;
+      await awardCurrency(uid, amt, 'Admin grant');
+      renderAdminPlayerList();
+    });
   }
 }
 document.getElementById('refreshPlayersBtn')?.addEventListener('click', renderAdminPlayerList);
@@ -4108,6 +4506,83 @@ async function runSyncTick() {
     debug('⚠️ sync tick: ' + (e && e.message));
   }
 }
+
+// ============================================================
+// SITE-WIDE THEME (admin-controlled, applied on every device)
+// The chosen theme is stored in Firebase at admin/theme and every client
+// listens for changes, so a single admin action re-themes the whole site.
+// ============================================================
+const THEMES = ['default', 'halloween', 'christmas', 'cny', 'easter', 'april-fools'];
+
+// Apply a theme to the current page (sets <body data-theme> + starts Herobrine
+// scheduler if the April Fools theme is active).
+function applyTheme(theme) {
+  const t = THEMES.includes(theme) ? theme : 'default';
+  document.body.dataset.theme = t;
+  // Reflect the active button in the admin panel.
+  document.querySelectorAll('.theme-btn').forEach(b => {
+    b.style.outline = (b.dataset.theme === t) ? '3px solid #2b7a2b' : 'none';
+  });
+  scheduleHerobrine(t === 'april-fools');
+  debug(`🎨 Theme applied: ${t}`);
+}
+
+// --- April Fools: Herobrine pops up randomly every 10-20s for 0.75s ---
+let herobrineEl = null;
+let herobrineTimer = null;
+function ensureHerobrineEl() {
+  if (!herobrineEl) {
+    herobrineEl = document.createElement('div');
+    herobrineEl.id = 'herobrinePopup';
+    herobrineEl.innerHTML = '<img src="herobrine.png" alt="Herobrine" onerror="this.outerHTML=\'👁️\'">';
+    document.body.appendChild(herobrineEl);
+  }
+  return herobrineEl;
+}
+function scheduleHerobrine(active) {
+  if (herobrineTimer) { clearTimeout(herobrineTimer); herobrineTimer = null; }
+  if (!active) { if (herobrineEl) herobrineEl.style.display = 'none'; return; }
+  ensureHerobrineEl(); // preload the sprite so its size is known for positioning
+  const next = 10000 + Math.random() * 10000; // 10-20s
+  herobrineTimer = setTimeout(() => {
+    const el = ensureHerobrineEl();
+    el.style.display = 'block';
+    // Position fully inside the CURRENT visible viewport. `position: fixed`
+    // is viewport-relative, so this is what the player sees right now.
+    const ew = el.offsetWidth || 80;
+    const eh = el.offsetHeight || 120;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const maxLeft = Math.max(8, vw - ew - 8);
+    const maxTop = Math.max(8, vh - eh - 8);
+    el.style.left = (8 + Math.random() * (maxLeft - 8)) + 'px';
+    el.style.top = (8 + Math.random() * (maxTop - 8)) + 'px';
+    setTimeout(() => { el.style.display = 'none'; }, 750);
+    scheduleHerobrine(true); // re-arm
+  }, next);
+}
+
+// Admin panel: theme selection buttons.
+document.querySelectorAll('.theme-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    if (!isAdmin && !promptAdminPassword()) return;
+    const theme = btn.dataset.theme;
+    try {
+      await set(ref(db, 'admin/theme'), theme);
+      const msg = document.getElementById('themeMsg');
+      if (msg) msg.textContent = `✅ Theme set to "${theme}" — applied to all devices.`;
+    } catch (e) {
+      const msg = document.getElementById('themeMsg');
+      if (msg) msg.textContent = '❌ Failed: ' + (e && e.message);
+    }
+  });
+});
+
+// Live theme sync: every client re-themes whenever the admin changes it.
+try {
+  onValue(ref(db, 'admin/theme'), (snap) => {
+    applyTheme(snap.exists() ? snap.val() : 'default');
+  });
+} catch (e) { debug('⚠️ theme listener: ' + (e && e.message)); }
 
 // ============================================================
 // INIT
